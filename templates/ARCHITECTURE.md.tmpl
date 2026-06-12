@@ -1,0 +1,82 @@
+# ARCHITECTURE — {{PROJECT_NAME}}
+
+> 작성 가이드: /autoplan 또는 /plan-eng-review 결과를 정리.
+> Phase 3 (코딩) 진입 전 필수. 비어있으면 차단된다.
+
+## Stack & Why
+
+| Layer | Choice | Why |
+|---|---|---|
+| Frontend | Next.js | ... |
+| Backend | Python (FastAPI/Django/...) | ... |
+| DB | ... | ... |
+| Deploy | ... | ... |
+
+(왜 이걸 골랐는지 한 문장씩 — Claude가 나중에 뒤집지 않도록)
+
+## Domain map
+
+각 도메인이 *owns* 하는 것과 *NOT owns* 하는 것 명시. DDD 정신 그대로.
+
+### 결제 (payment)
+- Owns: 결제 트랜잭션, 환불, 결제 수단
+- NOT owns: 회원 정보, 주문 정보
+- Emits events: payment.completed, payment.failed
+- Subscribes: order.created
+
+### 회원 (member)
+- Owns: 회원 가입/탈퇴, 인증, 프로필
+- NOT owns: 결제 수단, 주문 이력
+- Emits events: member.signed_up, member.deleted
+- Subscribes: (none)
+
+### {도메인 추가}
+- Owns:
+- NOT owns:
+- Emits:
+- Subscribes:
+
+## Folder layout
+
+```
+{프로젝트}/
+├── frontend/
+│   └── domains/
+│       ├── payment/
+│       ├── member/
+│       └── ...
+├── backend/
+│   └── domains/
+│       ├── payment/
+│       ├── member/
+│       └── ...
+└── shared/
+```
+
+도메인 폴더 *안*은 자유. 도메인 *간*은 아래 Inter-domain rule 따름.
+
+## Data contracts (핵심 entity)
+
+| Entity | Owner domain | Shape 요약 |
+|---|---|---|
+| User | member | { id, email, name, created_at } |
+| Order | order | { id, user_id, items[], status, total } |
+| Payment | payment | { id, order_id, amount, method, status } |
+
+## Inter-domain communication rule
+
+다음 중 하나(또는 조합):
+- [ ] 도메인 간 직접 import 금지 — 이벤트 버스만
+- [ ] HTTP API만 (모노레포여도)
+- [ ] 공유 라이브러리 통해서만
+- [ ] 직접 호출 허용 (소규모 프로젝트만)
+
+선택: ...
+
+## ADR log (요약)
+
+세부는 `docs/adr/ADR-{NNN}.md`. 여기는 한 줄 인덱스만.
+
+| # | Date | Decision |
+|---|---|---|
+| 001 | YYYY-MM-DD | (예: Postgres over SQLite) |

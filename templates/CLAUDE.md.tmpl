@@ -1,0 +1,108 @@
+# CLAUDE.md — {{PROJECT_NAME}}
+
+이 파일은 Claude Code/Antigravity가 매 세션 시작 시 읽는 작업 규칙이다.
+
+## Reading order (작업 시작 전 항상 이 순서로)
+1. `.blueprint/state.md` — 현재 어디까지 왔는지
+2. `docs/INQUIRY.md` — 발견 단계 리서치·기능/플로우 초안 (Phase 0 산출물)
+3. `docs/PRODUCT.md` — 무엇을 만드는지, NON-GOALS 확인
+4. `docs/ARCHITECTURE.md` — 도메인 경계, inter-domain 규칙
+5. 그 다음에야 코드 작업 시작
+
+## Hard rules
+
+### NON-GOALS 보호
+PRODUCT.md의 NON-GOALS에 있는 기능은 절대 추가하지 않는다. 사용자가 명시 요청해도, "이 기능은 NON-GOALS에 있는데 옮길까요?" 먼저 묻고 NON-GOALS에서 제거된 후에만 작업.
+
+### 도메인 경계
+새 코드 추가 전, 어느 도메인에 속하는지 먼저 선언한다. ARCHITECTURE.md의 Domain map 에 없는 도메인이면 새로 만들기 전에 ADR 작성.
+
+### Inter-domain import 금지
+ARCHITECTURE.md의 Inter-domain rule 위반 금지. 위반이 필요한 상황이면 코드 짜기 전에 ADR로 규칙 변경 먼저 기록.
+
+### ADR-first for architecture changes
+ARCHITECTURE.md를 바꿀 결정이 생기면 코드 짜기 전에 `docs/adr/ADR-{NNN}.md` 먼저 작성.
+
+### Phase 4 진입 차단
+PRODUCT.md 또는 ARCHITECTURE.md가 비어있거나 템플릿 그대로면 코드 작업(Phase 4 IMPLEMENT) 거부. /blueprint로 먼저 채우게 안내.
+
+## Blueprint integration
+
+### Trigger 검사 (매 세션 시작)
+세션 시작 시 `.blueprint/state.md` 의 `## Triggers fired` 섹션 확인:
+
+- 비어있지 않고 `quiet_until` 이 비어있거나 과거면 → 응답 *최상단*에 배너:
+
+```
+─────────────────────────────────
+CHECKPOINT TRIGGER
+조건: {조건들}
+추천: /blueprint check
+─────────────────────────────────
+```
+
+- `strict_mode: true` 이면 위 배너 대신 AskUserQuestion으로 블로킹.
+
+### state.md 자동 갱신 (Claude가 직접 편집)
+- `/ship` 성공 시: `ships_since_checkpoint` +1
+- 새 plan(`plans/*.md`) 생성 시 이번 세션에서 ARCHITECTURE.md를 한 번도 읽지 않았으면: `plans_without_arch_read` +1
+- `/blueprint check` 완료 시: 위 둘 0으로 리셋, `last_check` 갱신, `## Triggers fired` 비움
+
+### 50줄 한계
+state.md가 50줄 넘으면 Decisions log를 docs/adr/로 잘라낸다.
+
+## Skill routing (gstack 통합)
+
+요청이 다음에 해당하면 직접 답변 대신 해당 스킬 호출:
+- 발견·리서치 (Phase 0 INQUIRY) → Claude 직접 (WebSearch/WebFetch로 리서치 → docs/INQUIRY.md 초안)
+- 새 기능 기획, 아이디어 검증 → `/office-hours`
+- 디자인 시스템 만들기 → `/design-consultation`
+- 비주얼 변형 탐색 → `/design-shotgun`
+- 아키텍처/플랜 리뷰 → `/plan-eng-review` 또는 `/autoplan`
+- 스코프 재검토 → `/plan-ceo-review`
+- 버그/에러 디버깅 → `/investigate`
+- 외부 시선 → `/codex review` 또는 `/codex challenge`
+- 코드 품질 점검 → `/code-review`
+- QA / 사이트 테스트 → `/qa`
+- 출시 → `/ship` → `/land-and-deploy`
+- 출시 후 문서 동기화 → `/document-release`
+- 회고 → `/retro`
+
+## Build/test/run commands
+
+(프로젝트 셋업 후 채운다)
+- 빌드:
+- 테스트:
+- 개발 서버:
+- 린트/포맷:
+
+## Session continuity — HISTORY.md / DIGEST.md
+
+### HISTORY.md (자동)
+- 매 응답 후 Stop hook이 `HISTORY.md` 에 자동 append.
+- 손대지 않는다. 읽기만.
+- 옵트아웃: `.no-history` 빈 파일 생성.
+
+### DIGEST.md (Claude가 관리)
+Claude는 다음 시점에 DIGEST.md 자동 갱신:
+1. 세션 마무리 시점 ("그만", "다음에", 작업 일단락)
+2. 사용자 명시 요청 ("/digest", "정리해")
+3. 큰 분기점 (기능 완료, 결정 확정, 마일스톤)
+
+양식 (역시간순, 맨 위에 새 항목):
+```markdown
+# DIGEST — {{PROJECT_NAME}}
+
+## YYYY-MM-DD HH:MM
+- 한 일 (1줄)
+- 핵심 결정 (1-2줄)
+- 다음에 이어갈 것 (1줄)
+- (선택) 미해결 질문 (1줄)
+```
+
+각 항목 3-5줄 이내. 50개 넘으면 오래된 것부터 정리.
+
+### 새 세션 시작 시
+1. `DIGEST.md` 있으면 *반드시 먼저 읽음*
+2. 가장 위 1-3개 항목 컨텍스트 흡수
+3. 첫 응답에 한 줄 "지난 세션: {요약}" 알림

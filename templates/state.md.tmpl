@@ -1,0 +1,34 @@
+# Blueprint State — {{PROJECT_NAME}}
+
+## Progress
+- [ ] Phase 0: INQUIRY
+- [ ] Phase 1: PRODUCT
+- [ ] Phase 2: DESIGN
+- [ ] Phase 3: ARCHITECTURE
+- [ ] Phase 4: IMPLEMENT
+- [ ] Phase 5: REVIEW
+- [ ] Phase 6: SHIP
+- [ ] Phase 7: POST-SHIP
+
+> CHECKPOINT는 phase 리스트에서 제외 (ADR-009) — cross-cutting trigger.
+> INQUIRY는 phase 0 — Claude가 직접 리서치·발견해 docs/INQUIRY.md 초안 작성. PRODUCT 앞단.
+> REVIEW는 phase 5 — SHIP 전 hard gate. /blueprint 스킬이 자동으로 /code-review 호출 + docs/reviews/*.md 저장.
+
+## Next action
+Phase 0 — INQUIRY: 기본 질문 → 웹 리서치 → docs/INQUIRY.md 초안 작성.
+
+## Counters
+- ships_since_checkpoint: 0
+- last_check: {{DATE}}
+- checkpoint_count: 0
+- plans_without_arch_read: 0
+
+## Triggers fired
+(empty)
+
+## Settings
+- strict_mode: false
+- quiet_until: (empty)
+
+## Decisions log
+(아직 없음 — 세부는 docs/adr/)

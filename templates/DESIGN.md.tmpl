@@ -1,0 +1,66 @@
+# DESIGN — {{PROJECT_NAME}}
+
+> 작성 가이드: /design-consultation 또는 /design-shotgun 확정 안.
+
+## Visual direction
+- 톤: (예: 차분 & 진중 / 캐주얼 & 친근 / 미니멀 & 기능 중심)
+- 참고 레퍼런스: ...
+
+## Color
+- Primary: #...
+- Secondary: #...
+- Accent: #...
+- Neutral scale: #f9fafb → #111827 (9단계)
+- Semantic: success / warning / error / info
+
+## Typography
+- Heading family: ...
+- Body family: ...
+- Scale: 12 / 14 / 16 / 20 / 24 / 32 / 48
+
+## Spacing system
+4 / 8 / 12 / 16 / 24 / 32 / 48 / 64 px
+
+## Component inventory
+- Button (primary / secondary / ghost)
+- Input (text / number / select)
+- Card
+- Modal
+- Toast
+- ...
+
+## Screen list
+PRODUCT.md의 Jobs-to-be-done에서 도출:
+1. ...
+2. ...
+3. ...
+
+## UI Composition Decisions — 화면별 구성요소 결정 (필수)
+
+> **이 섹션은 코드 작업 전 사용자와 인터뷰로 채운다.** 빈 채로 코드 들어가면
+> Claude가 "데이터 구조 → UI 1:1 매핑"이라는 게으른 디자인을 함 (= 사용자가
+> 실제로 필요한 것과 어긋난 컴포넌트들이 자동으로 깔림).
+>
+> **인터뷰 절차** (각 메인 화면/패널마다):
+> 1. PRODUCT.md의 Jobs-to-be-done과 어떤 컴포넌트가 매핑되는지 표 작성
+> 2. 사용자에게 *각 화면을 어떤 상황에 어떻게 볼지* 직접 질문
+> 3. 후보 컴포넌트 3~4개 추천 + 각각 어떤 JBT 해결하는지 명시
+> 4. 사용자가 빠진 거 추가 / 안 필요한 거 제거
+> 5. 최종 결정을 아래 표로 박음
+
+### 화면 1: {화면 이름}
+| 컴포넌트 | 어느 JBT? | 우선순위 | 결정 이유 |
+|---|---|---|---|
+| 예) Hero 헤더 | JBT #1 (세션 간 망각) | 필수 | 사용자가 매번 "어디지?" 묻는 통증 직답 |
+| 예) Counter grid | (매핑 안 됨) | 제거 | 노이즈, 매일 보고 싶지 않음 |
+
+### 화면 2: ...
+
+**원칙**:
+- JBT에 매핑 안 되는 컴포넌트는 박지 않음 (의심 컴포넌트는 다 제거)
+- 데이터 구조(예: state.md 섹션들)와 UI 컴포넌트는 *다른 차원* — 1:1 매핑 금지
+
+## User flow (핵심 1개)
+{메인 플로우 텍스트로}
+
+예: 회원가입 → 로그인 → 메인 → 상품선택 → 결제 → 완료
