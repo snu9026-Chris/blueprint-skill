@@ -139,19 +139,23 @@ state.md 파싱 후 응답의 *맨 첫 줄*:
 Last session: Phase {N} ({phase_name}) 완료. Next: {next_action_one_liner}.
 ```
 
-### Step 1.5: INQUIRY 백필 (자동·필수 — 묻지 않는다)
+### Step 1.5: phase 동기화 — 전체 캐노니컬 재조정 (자동·필수, 묻지 않는다)
 
-RESUME 시 state.md Progress에 **INQUIRY phase가 없으면 무조건 자동으로 박아넣는다.** AskUserQuestion 없이 바로 편집. (INQUIRY는 파이프라인 0번 고정 phase — 옛 프로젝트라도 항상 존재해야 함.)
+RESUME 시 state.md Progress를 **현재 캐노니컬 파이프라인 전체에 맞춰 재조정**한다. AskUserQuestion 없이 바로 편집. 목적: INQUIRY 이전/구버전에 시작한 프로젝트라도 *모든 표준 phase가 빠짐없이* 보이게(미완은 미완으로) — "doc=진실원본" 유지하며 마이그레이션.
 
-판정: Progress 줄들 중 `Phase \d+(\.\d+)?: INQUIRY` 가 하나도 없으면 백필 실행. 이미 있으면 아무것도 안 함 (idempotent — 매 resume마다 중복 추가 금지).
+**캐노니컬 순서·번호 (state.md.tmpl과 동일):**
+`0 INQUIRY · 1 PRODUCT · 2 DESIGN · 3 ARCHITECTURE · 4 IMPLEMENT · 5 REVIEW · 6 SHIP · 7 POST-SHIP`
+(소프트 게이트 FEASIBILITY/UX-REVIEW/QA 등 프로젝트가 이미 가진 추가 phase는 *그대로 보존*하되 적절한 소수 위치로.)
 
-백필 절차 (state.md 직접 편집):
-1. Progress 맨 위에 `- [ ] Phase 0: INQUIRY (백필)` 삽입. 체크박스는 **blank `[ ]`** (이미 진행 중이라도 공식 INQUIRY는 안 했으니 미완으로 둠 — 줄 존재가 핵심).
-2. 기존 모든 phase 번호 **+1** (정수·소수 동일: `0→1`, `0.5→1.5`, `4.5→5.5` ...). 체크박스·이름·완료일·메타는 그대로 두고 **숫자만** 변경.
-3. `## Next action` 등 본문의 phase 번호 참조도 +1로 맞춤 (있으면).
-4. 한 줄 통지: "Phase 0 INQUIRY를 추가하고 나머지 phase를 +1 재번호했습니다."
+**재조정 절차 (idempotent — 이미 맞으면 아무것도 안 함):**
+1. Progress의 기존 phase를 **이름 기준**으로 캐노니컬과 대조 (번호 무시 — 옛 프로젝트는 번호가 다름).
+2. **빠진 캐노니컬 phase**(예: INQUIRY)는 `- [ ] Phase {캐노니컬번호}: {NAME}` 로 **미완 `[ ]`** 삽입. **절대 done으로 만들지 않는다** (실제로 안 한 단계니까).
+3. **있는 phase**는 체크박스 상태(`[x]`/`[◐]`/`[ ]`)·완료일·메타를 **그대로 보존**하고, 번호만 캐노니컬에 맞게 **재번호**.
+4. 프로젝트 고유 phase(소프트 게이트 등)는 삭제하지 말고 이름 유지 + 위치에 맞는 번호 부여.
+5. `## Next action` 등 본문의 phase 번호 참조도 새 번호로 맞춤.
+6. 한 줄 통지: "phase 동기화 — 빠졌던 {추가된 NAME들}을 미완으로 추가, 전체 재번호."
 
-이 백필은 대시보드 PHASES 패널이 곧바로 INQUIRY를 그리게 한다 (대시보드는 state.md를 동적으로 읽으므로 별도 작업 불필요).
+이미 캐노니컬과 일치하면 편집 없음. 이 재조정으로 대시보드 PHASES가 곧바로 전체 파이프라인을 그린다(대시보드는 state.md 동적 파싱 + 그래도 빠진 게 있으면 "미반영" ghost로 표시).
 
 ### Step 2: 트리거 배너 (조건부)
 
@@ -285,7 +289,8 @@ INQUIRY 결과(확정 기능·플로우)는 Phase 1에서 `/office-hours`의 입
 1. 3축 하위 항목을 Claude가 **초안 리스트업** (INQUIRY/PRODUCT 기반)
 2. 갈림길·미정 항목만 **하나씩 질의**
 3. 확정 → `docs/DESIGN.md` (Screen list / UI Composition Decisions / UX 플로우 섹션)에 박음
-4. 확정된 화면을 **플로우 순서대로** `docs/design/screenshots/<순번>-<화면>.html` 시안 생성 → 대시보드 **Preview 탭에 흐름 순으로** 노출 (브라우저로 안 띄움)
+4. 확정된 화면을 **플로우 순서대로** `docs/design/screenshots/<순번>-<화면>.html` 시안 생성 → 대시보드 **Preview 탭에 흐름 순으로** 노출.
+   - **시안은 무조건 HTML/CSS로 직접 작성** — PNG·스크린샷·이미지·말로만 설명·브라우저 캡처 금지. 실제 만드는 프로그램과 같은 매체(살아있는 HTML)여야 Preview에 뜨고 시안=구현 간극이 없다. (Preview 갤러리는 `.html`만 수집)
 
 **금지**: 데이터 구조(state.md 섹션 등)를 그대로 UI 컴포넌트로 1:1 매핑. JBT 매핑 없는 컴포넌트는 박지 않는다.
 
